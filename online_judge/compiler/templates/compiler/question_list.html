@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Coding Questions</h2>
+    <a href="{% url 'compiler:home' %}" class="btn btn-secondary">← Back to Home</a>
+</div>
+
+<div class="row">
+    {% for question in questions %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ question.title }}</h5>
+                <span class="badge 
+                    {% if question.difficulty == 'Easy' %}bg-success
+                    {% elif question.difficulty == 'Medium' %}bg-warning
+                    {% else %}bg-danger{% endif %}">
+                    {{ question.difficulty }}
+                </span>
+                <p class="card-text mt-2">{{ question.description|truncatewords:20 }}</p>
+                <a href="{% url 'compiler:question_detail' question.id %}" class="btn btn-primary">Solve Problem</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center">
+            <h4>No questions available yet!</h4>
+            <p>Questions will be added soon.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>{{ question.title }}</h2>
+    <a href="{% url 'compiler:question_list' %}" class="btn btn-secondary">← Back to Questions</a>
+</div>
+
+<div class="split-container">
+    <div class="left-panel">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Problem Description</h4>
+                    <span class="badge 
+                        {% if question.difficulty == 'Easy' %}bg-success
+                        {% elif question.difficulty == 'Medium' %}bg-warning
+                        {% else %}bg-danger{% endif %}">
+                        {{ question.difficulty }}
+                    </span>
+                </div>
+                
+                <div class="mb-4">
+                    <pre>{{ question.description }}</pre>
+                </div>
+                
+                <h5>Sample Input:</h5>
+                <pre class="bg-light p-2">{{ question.sample_input }}</pre>
+                
+                <h5>Sample Output:</h5>
+                <pre class="bg-light p-2">{{ question.sample_output }}</pre>
+            </div>
+        </div>
+    </div>
+    
+    <div class="right-panel">
+        <div class="mb-3">
+            <textarea id="code-editor" class="form-control code-editor" rows="12" placeholder="# Write your Python solution here..."></textarea>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-6">
+                <button id="run-btn" class="btn btn-outline-primary w-100">Run</button>
+            </div>
+            <div class="col-6">
+                <button id="submit-btn" class="btn btn-success w-100">Submit</button>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="test-input" class="form-label">Test Input:</label>
+            <textarea id="test-input" class="form-control" rows="3" placeholder="Test with custom input...">{{ question.sample_input }}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="output-area" class="form-label">Output:</label>
+            <textarea id="output-area" class="form-control" rows="5" readonly placeholder="Output will appear here..."></textarea>
+        </div>
+        
+        <div id="result-area"></div>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultModalTitle">Submission Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="resultModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Try Again</button>
+                <a href="{% url 'compiler:question_list' %}" class="btn btn-secondary">Question List</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const questionId = "{{ question.id|default:'0'}}" ;
+
+document.getElementById('run-btn').addEventListener('click', function() {
+    const code = document.getElementById('code-editor').value;
+    const input = document.getElementById('test-input').value;
+    const outputArea = document.getElementById('output-area');
+    const runBtn = document.getElementById('run-btn');
+    
+    runBtn.disabled = true;
+    runBtn.textContent = 'Running...';
+    outputArea.value = 'Running code...';
+    
+    fetch('{% url "compiler:run_code" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            code: code,
+            input: input
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            outputArea.value = data.output;
+        } else {
+            outputArea.value = 'Error: ' + data.error;
+        }
+    })
+    .catch(error => {
+        outputArea.value = 'Error: ' + error.message;
+    })
+    .finally(() => {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Run';
+    });
+});
+
+document.getElementById('submit-btn').addEventListener('click', function() {
+    const code = document.getElementById('code-editor').value;
+    const submitBtn = document.getElementById('submit-btn');
+    
+    if (!code.trim()) {
+        alert('Please write some code before submitting!');
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    
+    fetch('{% url "compiler:submit_code" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            code: code,
+            question_id: questionId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const modalTitle = document.getElementById('resultModalTitle');
+            const modalBody = document.getElementById('resultModalBody');
+            
+            if (data.passed === data.total) {
+                modalTitle.textContent = '🎉 All Tests Passed!';
+                modalTitle.className = 'modal-title text-success';
+                modalBody.innerHTML = `
+                    <div class="text-center">
+                        <h4 class="text-success">Congratulations!</h4>
+                        <p>You passed all ${data.total} test cases!</p>
+                    </div>
+                `;
+            } else {
+                modalTitle.textContent = '❌ Some Tests Failed';
+                modalTitle.className = 'modal-title text-danger';
+                modalBody.innerHTML = `
+                    <div class="text-center">
+                        <h4 class="text-warning">Keep trying!</h4>
+                        <p>You passed ${data.passed} out of ${data.total} test cases.</p>
+                        <p class="text-muted">Review your solution and try again.</p>
+                    </div>
+                `;
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+            modal.show();
+        } else {
+            alert('Error submitting code: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+    });
+});
+</script>
+{% endblock %}

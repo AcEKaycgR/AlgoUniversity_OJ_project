@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Background container */
+        .glitch-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: black;
+        }
+        
+        .glitch-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Vignette effects */
+        .outer-vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,1) 100%);
+        }
+        
+        .center-vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%);
+        }
+        
+        /* Make sure content is above background */
+        body {
+            position: relative;
+            z-index: 1;
+            background: transparent;
+        }
+        
+        /* Make content containers semi-transparent */
+        .content-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+        }
+        
+        .code-editor {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .split-container {
+            display: flex;
+            height: 70vh;
+        }
+        
+        .left-panel, .right-panel {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        
+        .left-panel {
+            border-right: 1px solid #ddd;
+        }
+        
+        /* Card styling with transparency */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .navbar {
+            background: rgba(33, 37, 41, 0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="glitch-background">
+        <canvas id="glitch-canvas" class="glitch-canvas"></canvas>
+        <div class="outer-vignette"></div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'compiler:start' %}">Coding Platform</a>
+            {% if user.is_authenticated %}
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3">Hello, {{ user.username }}!</span>
+                    <a class="btn btn-outline-light" href="{% url 'authentication:logout' %}">Logout</a>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <compiler class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show content-overlay" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </compiler>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Load the glitch effect -->
+    <script src="{% load static %}{% static 'js/letter-glitch.js' %}"></script>
+    <script>
+        // Initialize the glitch background when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const glitch = new LetterGlitch('glitch-canvas', {
+                glitchColors: ['#2b4539', '#61dca3', '#61b3dc'],
+                glitchSpeed: 50,
+                centerVignette: false,
+                outerVignette: true,
+                smooth: true,
+            });
+        });
+    </script>
+    
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

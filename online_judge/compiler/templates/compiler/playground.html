@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Code Playground</h2>
+    <a href="{% url 'compiler:home' %}" class="btn btn-secondary">← Back to Home</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="mb-3">
+            <label for="code-editor" class="form-label">Write your code:</label>
+            <textarea id="code-editor" class="form-control code-editor" rows="15" placeholder="# Write your Python code here..."></textarea>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="mb-3">
+            <label for="input-data" class="form-label">Input:</label>
+            <textarea id="input-data" class="form-control" rows="5" placeholder="Enter input data here..."></textarea>
+        </div>
+        
+        <div class="mb-3">
+            <button id="run-btn" class="btn btn-primary w-100">Run Code</button>
+        </div>
+        
+        <div class="mb-3">
+            <label for="output-data" class="form-label">Output:</label>
+            <textarea id="output-data" class="form-control" rows="8" readonly placeholder="Output will appear here..."></textarea>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('run-btn').addEventListener('click', function() {
+    const code = document.getElementById('code-editor').value;
+    const input = document.getElementById('input-data').value;
+    const outputArea = document.getElementById('output-data');
+    const runBtn = document.getElementById('run-btn');
+    
+    runBtn.disabled = true;
+    runBtn.textContent = 'Running...';
+    outputArea.value = 'Running code...';
+    
+    fetch('{% url "compiler:run_code" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            code: code,
+            input: input
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            outputArea.value = data.output;
+        } else {
+            outputArea.value = 'Error: ' + data.error;
+        }
+    })
+    .catch(error => {
+        outputArea.value = 'Error: ' + error.message;
+    })
+    .finally(() => {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Run Code';
+    });
+});
+</script>
+{% endblock %}
