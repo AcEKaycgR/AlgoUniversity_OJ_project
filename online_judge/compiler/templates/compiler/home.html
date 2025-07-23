@@ -1,34 +1,153 @@
 {% extends 'base.html' %}
 
+{% block body_class %}page-home{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="text-center mb-4">
-            <h1>Welcome to the Coding Platform</h1>
-            <p class="lead">Choose your coding adventure!</p>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <h3 class="card-title">🏗️ Playground</h3>
-                        <p class="card-text">Write and run your code in our online compiler. Test your ideas quickly!</p>
-                        <a href="{% url 'compiler:playground' %}" class="btn btn-primary">Go to Playground</a>
+<div class="container-fluid px-4 py-5">
+    <!-- Hero Section with Black Block -->
+    <div class="row min-vh-100 d-flex align-items-center">
+        <div class="col-lg-8 mx-auto">
+            <div class="content-block p-5 mb-4 text-center">
+                <h1 class="display-3 fw-bold mb-4 text-white">
+                    Level Up Your 
+                    <span style="background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        Coding Skills
+                    </span>
+                </h1>
+                <p class="lead text-white mb-5 opacity-90" style="font-size: 1.3rem;">
+                    Master algorithms, ace interviews, and build your programming expertise with our interactive platform designed for ambitious developers.
+                </p>
+                
+                <div class="row g-4 mt-4">
+                    <!-- Playground Card -->
+                    <div class="col-md-6">
+                        <div class="content-block h-100">
+                            <div class="p-4 text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-play-circle fa-4x text-primary"></i>
+                                </div>
+                                <h4 class="fw-bold mb-3 text-white">Code Playground</h4>
+                                <p class="text-white mb-4 opacity-85">
+                                    Write, test, and experiment with your code in our powerful online IDE.
+                                </p>
+                                <a href="{% url 'compiler:playground' %}" class="btn btn-primary btn-lg px-5 py-3">
+                                    <i class="fas fa-rocket me-2"></i>Start Coding
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Problems Card -->
+                    <div class="col-md-6">
+                        <div class="content-block h-100">
+                            <div class="p-4 text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-puzzle-piece fa-4x text-success"></i>
+                                </div>
+                                <h4 class="fw-bold mb-3 text-white">Practice Problems</h4>
+                                <p class="text-white mb-4 opacity-85">
+                                    Solve curated coding challenges and improve your problem-solving skills.
+                                </p>
+                                <a href="{% url 'compiler:question_list' %}" class="btn btn-success btn-lg px-5 py-3">
+                                    <i class="fas fa-brain me-2"></i>Start Practicing
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <h3 class="card-title">📝 Question List</h3>
-                        <p class="card-text">Practice with curated coding problems. Improve your problem-solving skills!</p>
-                        <a href="{% url 'compiler:question_list' %}" class="btn btn-success">View Questions</a>
+        </div>
+    </div>
+
+    <!-- Stats Section with Black Blocks -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="content-block p-4">
+                <h3 class="text-center text-white mb-4">Platform Statistics</h3>
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="text-center p-3">
+                            <i class="fas fa-code fa-2x text-primary mb-2"></i>
+                            <h4 class="fw-bold text-primary mb-1">500+</h4>
+                            <p class="text-white opacity-75">Coding Problems</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="text-center p-3">
+                            <i class="fas fa-users fa-2x text-success mb-2"></i>
+                            <h4 class="fw-bold text-success mb-1">10K+</h4>
+                            <p class="text-white opacity-75">Active Students</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="text-center p-3">
+                            <i class="fas fa-trophy fa-2x text-warning mb-2"></i>
+                            <h4 class="fw-bold text-warning mb-1">95%</h4>
+                            <p class="text-white opacity-75">Success Rate</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="text-center p-3">
+                            <i class="fas fa-clock fa-2x text-info mb-2"></i>
+                            <h4 class="fw-bold text-info mb-1">24/7</h4>
+                            <p class="text-white opacity-75">Available</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.content-block {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.content-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.03) 50%, transparent 70%);
+    pointer-events: none;
+}
+
+.content-block:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+</style>
 {% endblock %}

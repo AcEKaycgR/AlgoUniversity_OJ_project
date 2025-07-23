@@ -1,188 +1,739 @@
 {% extends 'base.html' %}
 
+{% block body_class %}page-editor{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>{{ question.title }}</h2>
-    <a href="{% url 'compiler:question_list' %}" class="btn btn-secondary">← Back to Questions</a>
-</div>
+<style>
+/* Remove default margins and ensure full height */
+html, body {
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
 
-<div class="split-container">
-    <div class="left-panel">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4>Problem Description</h4>
-                    <span class="badge 
-                        {% if question.difficulty == 'Easy' %}bg-success
-                        {% elif question.difficulty == 'Medium' %}bg-warning
-                        {% else %}bg-danger{% endif %}">
-                        {{ question.difficulty }}
-                    </span>
+/* Full screen dark layout - no background visible */
+.leetcode-container {
+    height: calc(100vh - 60px); /* Account for navbar height */
+    background: #1e1e1e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    overflow: hidden;
+    position: fixed;
+    top: 60px; /* Start below navbar */
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* Left panel - dark theme */
+.problem-section {
+    background: #262626;
+    border-right: 1px solid #3e3e3e;
+    height: 100%;
+}
+
+/* Right panel - dark code section */
+.code-section {
+    background: #1e1e1e;
+    height: 100%;
+}
+
+/* Dark code editor exactly like LeetCode */
+.code-editor-dark {
+    background: #1e1e1e !important;
+    color: #d4d4d4 !important;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    border: none !important;
+    padding: 20px !important;
+    tab-size: 4;
+    resize: none !important;
+}
+
+.code-editor-dark:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Code editor toolbar */
+.code-toolbar {
+    background: #2d2d2d;
+    border-bottom: 1px solid #3e3e3e;
+    padding: 10px 16px;
+    color: #d4d4d4;
+    height: 50px;
+    min-height: 50px;
+}
+
+/* Test cases section */
+.testcase-section {
+    background: #1e1e1e;
+    border-top: 1px solid #3e3e3e;
+    height: 280px;
+    min-height: 280px;
+    max-height: 280px;
+}
+
+.testcase-header {
+    background: #2d2d2d;
+    border-bottom: 1px solid #3e3e3e;
+    padding: 12px 16px;
+    color: #d4d4d4;
+    height: 50px;
+    min-height: 50px;
+}
+
+.testcase-tabs .nav-link {
+    background: #1e1e1e;
+    border: 1px solid #3e3e3e;
+    color: #d4d4d4;
+    margin-right: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 4px 4px 0 0;
+}
+
+.testcase-tabs .nav-link.active {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+
+.testcase-content {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    height: calc(100% - 50px);
+    overflow-y: auto;
+}
+
+.test-input-output {
+    background: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    color: #d4d4d4;
+}
+
+/* Problem header - dark theme */
+.problem-header {
+    background: #2d2d2d;
+    border-bottom: 1px solid #3e3e3e;
+    padding: 16px 24px;
+    color: #d4d4d4;
+    height: 80px;
+    min-height: 80px;
+}
+
+/* Enhanced timer buttons */
+.timer-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.timer-select {
+    background: #1e1e1e;
+    border: 1px solid #3e3e3e;
+    color: #d4d4d4;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    min-width: 120px;
+}
+
+.timer-select:focus {
+    outline: none;
+    border-color: #0066cc;
+}
+
+.timer-display {
+    background: #0066cc;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'Monaco', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.timer-btn {
+    background: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    color: #d4d4d4;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.timer-btn:hover {
+    background: #3e3e3e;
+    border-color: #4e4e4e;
+    color: #ffffff;
+}
+
+.timer-btn.active {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+/* Enhanced run/submit buttons */
+.btn-leetcode-run {
+    background: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    color: #d4d4d4;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-leetcode-run:hover {
+    background: #3e3e3e;
+    border-color: #4e4e4e;
+    color: #ffffff;
+}
+
+.btn-leetcode-submit {
+    background: #00b8a3;
+    color: white;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-leetcode-submit:hover {
+    background: #00a693;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Language selector */
+.language-selector {
+    background: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    color: #d4d4d4;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    min-width: 120px;
+}
+
+.language-selector:focus {
+    outline: none;
+    border-color: #0066cc;
+}
+
+/* Problem tabs - dark theme */
+.problem-tabs {
+    background: #2d2d2d;
+    border-bottom: 1px solid #3e3e3e;
+    height: 50px;
+    min-height: 50px;
+}
+
+.problem-tabs .nav-link {
+    color: #9ca3af;
+    border: none;
+    padding: 12px 20px;
+    font-weight: 500;
+    font-size: 14px;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.problem-tabs .nav-link:hover {
+    color: #d4d4d4;
+}
+
+.problem-tabs .nav-link.active {
+    color: #0066cc;
+    border-bottom: 2px solid #0066cc;
+    background: transparent;
+}
+
+/* Tab content - dark theme */
+.tab-content {
+    background: #262626;
+    color: #d4d4d4;
+    height: calc(100% - 130px); /* Account for header and tabs */
+    overflow-y: auto;
+}
+
+.tab-pane {
+    background: #262626;
+    color: #d4d4d4;
+    height: 100%;
+}
+
+/* Problem content styling */
+.problem-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #d4d4d4;
+}
+
+.problem-content p {
+    color: #d4d4d4;
+}
+
+.problem-content h6 {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.problem-content strong {
+    color: #ffffff;
+}
+
+.problem-content code {
+    background: #1e1e1e;
+    color: #00ff88;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #3e3e3e;
+}
+
+.example-block {
+    background: #1e1e1e;
+    border: 1px solid #3e3e3e;
+    border-radius: 6px;
+    padding: 16px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3e3e3e;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4e4e4e;
+}
+
+/* Code editor container fix */
+.code-editor-container {
+    height: calc(100% - 330px); /* Account for toolbar and test cases */
+    position: relative;
+}
+</style>
+
+<div class="leetcode-container d-flex">
+    <!-- Left Panel - Problem Description -->
+    <div class="problem-section" style="width: 50%; overflow-y: auto;">
+        <!-- Problem Header -->
+        <div class="problem-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-2 fw-semibold text-white">{{ question.id }}. {{ question.title }}</h4>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge badge-{{ question.difficulty|lower }} px-2 py-1">
+                            {{ question.difficulty }}
+                        </span>
+                        <div class="text-muted small">
+                            <i class="fas fa-thumbs-up me-1"></i>1.2K
+                            <i class="fas fa-thumbs-down ms-2 me-1"></i>45
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="mb-4">
-                    <pre>{{ question.description }}</pre>
+                <!-- Enhanced Timer Section -->
+                <div class="timer-section">
+                    <select id="timerSelect" class="timer-select">
+                        <option value="stopwatch">⏱️ Stopwatch</option>
+                        <option value="15">⏰ 15 min</option>
+                        <option value="20">⏰ 20 min</option>
+                        <option value="30">⏰ 30 min</option>
+                    </select>
+                    <div class="timer-display">
+                        <span id="timerDisplay">00:00</span>
+                    </div>
+                    <button id="timerBtn" class="timer-btn">
+                        <i class="fas fa-play"></i>
+                    </button>
                 </div>
-                
-                <h5>Sample Input:</h5>
-                <pre class="bg-light p-2">{{ question.sample_input }}</pre>
-                
-                <h5>Sample Output:</h5>
-                <pre class="bg-light p-2">{{ question.sample_output }}</pre>
+            </div>
+        </div>
+
+        <!-- Problem Navigation Tabs -->
+        <ul class="nav nav-tabs problem-tabs px-3 border-0" id="problemTabs">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#description">
+                    Description
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#solutions">
+                    Solutions
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#submissions">
+                    Submissions
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <div class="tab-pane fade show active p-4" id="description">
+                <div class="problem-content">
+                    <p>{{ question.description|linebreaks }}</p>
+                    
+                    <!-- Examples -->
+                    {% if question.examples.exists %}
+                        {% for example in question.examples.all %}
+                        <div class="mt-4">
+                            <h6 class="fw-semibold mb-3">Example {{ forloop.counter }}:</h6>
+                            <div class="example-block">
+                                <div class="mb-3">
+                                    <strong>Input:</strong> 
+                                    <code>{{ example.input_data }}</code>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Output:</strong> 
+                                    <code>{{ example.output_data }}</code>
+                                </div>
+                                {% if example.explanation %}
+                                <div>
+                                    <strong>Explanation:</strong> 
+                                    <span class="text-muted">{{ example.explanation }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="mt-4">
+                            <h6 class="fw-semibold mb-3">Example:</h6>
+                            <div class="example-block">
+                                <div class="mb-3">
+                                    <strong>Input:</strong> 
+                                    <code>{{ question.sample_input }}</code>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Output:</strong> 
+                                    <code>{{ question.sample_output }}</code>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="tab-pane fade p-4" id="solutions">
+                <div class="text-center py-5">
+                    <i class="fas fa-lock fa-2x text-muted mb-3"></i>
+                    <h6 class="text-muted">Solutions locked</h6>
+                    <small class="text-muted">Solve the problem to unlock</small>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade p-4" id="submissions">
+                <div class="text-center py-5">
+                    <i class="fas fa-code fa-2x text-muted mb-3"></i>
+                    <h6 class="text-muted">No submissions yet</h6>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="right-panel">
-        <div class="mb-3">
-            <textarea id="code-editor" class="form-control code-editor" rows="12" placeholder="# Write your Python solution here..."></textarea>
-        </div>
-        
-        <div class="row mb-3">
-            <div class="col-6">
-                <button id="run-btn" class="btn btn-outline-primary w-100">Run</button>
+
+    <!-- Right Panel - Code Editor -->
+    <div class="code-section d-flex flex-column" style="width: 50%;">
+        <!-- Code Toolbar -->
+        <div class="code-toolbar d-flex justify-content-between align-items-center">
+            <select id="languageSelect" class="language-selector">
+                <option value="python">🐍 Python3</option>
+                <option value="java">☕ Java</option>
+                <option value="cpp">⚡ C++</option>
+            </select>
+            
+            <div class="d-flex gap-3">
+                <button id="runBtn" class="btn-leetcode-run">
+                    <i class="fas fa-play me-2"></i>Run
+                </button>
+                <button id="submitBtn" class="btn-leetcode-submit">
+                    <i class="fas fa-paper-plane me-2"></i>Submit
+                </button>
             </div>
-            <div class="col-6">
-                <button id="submit-btn" class="btn btn-success w-100">Submit</button>
+        </div>
+
+        <!-- Code Editor -->
+        <div class="code-editor-container">
+            <textarea id="codeEditor" class="code-editor-dark w-100 h-100" style="resize: none;">{{ question.python_starter|default:"class Solution:\n    def solve(self):\n        pass" }}</textarea>
+        </div>
+
+        <!-- Test Cases Panel -->
+        <div class="testcase-section">
+            <div class="testcase-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <span class="fw-medium me-2">Testcase</span>
+                    <small class="text-muted">Test Result</small>
+                </div>
+                <button class="btn btn-sm" style="color: #d4d4d4; border: 1px solid #3e3e3e; padding: 4px 8px; border-radius: 4px; background: #2d2d2d;">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <div class="testcase-content">
+                <!-- Test case tabs -->
+                <ul class="nav nav-pills testcase-tabs mb-3" id="testCaseTabs">
+                    {% for test_case in test_cases %}
+                    <li class="nav-item">
+                        <button class="nav-link {% if forloop.first %}active{% endif %}" 
+                                data-bs-toggle="pill" data-bs-target="#testcase{{ forloop.counter }}"
+                                data-input="{{ test_case.input_data }}" data-expected="{{ test_case.expected_output }}">
+                            Case {{ forloop.counter }}
+                        </button>
+                    </li>
+                    {% empty %}
+                    <li class="nav-item">
+                        <button class="nav-link active" 
+                                data-bs-toggle="pill" data-bs-target="#testcase1"
+                                data-input="{{ question.sample_input }}" data-expected="{{ question.sample_output }}">
+                            Case 1
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                <!-- Test case content -->
+                <div class="tab-content">
+                    {% for test_case in test_cases %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="testcase{{ forloop.counter }}">
+                        <div class="mb-3">
+                            <small class="text-muted fw-medium">Input:</small>
+                            <div class="test-input-output mt-1">{{ test_case.input_data }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted fw-medium">Expected Output:</small>
+                            <div class="test-input-output mt-1">{{ test_case.expected_output }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="tab-pane fade show active" id="testcase1">
+                        <div class="mb-3">
+                            <small class="text-muted fw-medium">Input:</small>
+                            <div class="test-input-output mt-1">{{ question.sample_input }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted fw-medium">Expected Output:</small>
+                            <div class="test-input-output mt-1">{{ question.sample_output }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        
-        <div class="mb-3">
-            <label for="test-input" class="form-label">Test Input:</label>
-            <textarea id="test-input" class="form-control" rows="3" placeholder="Test with custom input...">{{ question.sample_input }}</textarea>
-        </div>
-        
-        <div class="mb-3">
-            <label for="output-area" class="form-label">Output:</label>
-            <textarea id="output-area" class="form-control" rows="5" readonly placeholder="Output will appear here..."></textarea>
-        </div>
-        
-        <div id="result-area"></div>
     </div>
 </div>
 
-<!-- Result Modal -->
-<div class="modal fade" id="resultModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="resultModalTitle">Submission Result</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="resultModalBody">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Try Again</button>
-                <a href="{% url 'compiler:question_list' %}" class="btn btn-secondary">Question List</a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
 <script>
-const questionId = "{{ question.id|default:'0'}}" ;
+// Same JavaScript functionality as before (keeping it unchanged)
+let timerInterval;
+let startTime;
+let isRunning = false;
+let timerMode = 'stopwatch';
+let timeLimit = null;
 
-document.getElementById('run-btn').addEventListener('click', function() {
-    const code = document.getElementById('code-editor').value;
-    const input = document.getElementById('test-input').value;
-    const outputArea = document.getElementById('output-area');
-    const runBtn = document.getElementById('run-btn');
+document.getElementById('timerSelect').addEventListener('change', function() {
+    const value = this.value;
+    if (value === 'stopwatch') {
+        timerMode = 'stopwatch';
+        timeLimit = null;
+    } else {
+        timerMode = 'countdown';
+        timeLimit = parseInt(value) * 60;
+    }
+    resetTimer();
+});
+
+document.getElementById('timerBtn').addEventListener('click', function() {
+    if (isRunning) {
+        stopTimer();
+    } else {
+        startTimer();
+    }
+});
+
+function startTimer() {
+    startTime = Date.now();
+    isRunning = true;
+    const btn = document.getElementById('timerBtn');
+    btn.innerHTML = '<i class="fas fa-pause"></i>';
+    btn.classList.add('active');
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    isRunning = false;
+    const btn = document.getElementById('timerBtn');
+    btn.innerHTML = '<i class="fas fa-play"></i>';
+    btn.classList.remove('active');
+}
+
+function resetTimer() {
+    clearInterval(timerInterval);
+    isRunning = false;
+    const btn = document.getElementById('timerBtn');
+    btn.innerHTML = '<i class="fas fa-play"></i>';
+    btn.classList.remove('active');
+    updateDisplay(timerMode === 'countdown' && timeLimit ? timeLimit : 0);
+}
+
+function updateTimer() {
+    const now = Date.now();
+    const elapsed = Math.floor((now - startTime) / 1000);
     
-    runBtn.disabled = true;
-    runBtn.textContent = 'Running...';
-    outputArea.value = 'Running code...';
+    if (timerMode === 'stopwatch') {
+        updateDisplay(elapsed);
+    } else {
+        const remaining = timeLimit - elapsed;
+        if (remaining <= 0) {
+            updateDisplay(0);
+            stopTimer();
+            alert('Time\'s up!');
+        } else {
+            updateDisplay(remaining);
+        }
+    }
+}
+
+function updateDisplay(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    document.getElementById('timerDisplay').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+document.getElementById('languageSelect').addEventListener('change', function() {
+    const language = this.value;
+    const codeEditor = document.getElementById('codeEditor');
+    
+    switch(language) {
+        case 'python':
+            codeEditor.value = `{{ question.python_starter|escapejs }}` || 'class Solution:\n    def solve(self):\n        pass';
+            break;
+        case 'java':
+            codeEditor.value = `{{ question.java_starter|escapejs }}` || 'public class Solution {\n    public static void main(String[] args) {\n        // your code here\n        System.out.println("Hello, World!");\n    }\n}';
+            break;
+        case 'cpp':
+            codeEditor.value = `{{ question.cpp_starter|escapejs }}` || '#include <iostream>\nusing namespace std;\n\nint main() {\n    return 0;\n}';
+            break;
+    }
+});
+
+document.getElementById('runBtn').addEventListener('click', function() {
+    const code = document.getElementById('codeEditor').value;
+    const language = document.getElementById('languageSelect').value;
+    const activeTab = document.querySelector('#testCaseTabs .nav-link.active');
+    
+    if (!activeTab) {
+        alert('Please select a test case');
+        return;
+    }
+    
+    const input = activeTab.getAttribute('data-input') || '';
+    runCode(code, input, language);
+});
+
+document.getElementById('submitBtn').addEventListener('click', function() {
+    const code = document.getElementById('codeEditor').value;
+    const language = document.getElementById('languageSelect').value;
+    submitCode(code, language);
+});
+
+function runCode(code, input, language) {
+    const btn = document.getElementById('runBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Running...';
     
     fetch('{% url "compiler:run_code" %}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
         },
         body: JSON.stringify({
             code: code,
-            input: input
+            input: input,
+            language: language
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            outputArea.value = data.output;
+            alert(`✅ Output:\n${data.output}`);
         } else {
-            outputArea.value = 'Error: ' + data.error;
+            alert(`❌ Error:\n${data.error}`);
         }
     })
-    .catch(error => {
-        outputArea.value = 'Error: ' + error.message;
-    })
     .finally(() => {
-        runBtn.disabled = false;
-        runBtn.textContent = 'Run';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-play me-2"></i>Run';
     });
-});
+}
 
-document.getElementById('submit-btn').addEventListener('click', function() {
-    const code = document.getElementById('code-editor').value;
-    const submitBtn = document.getElementById('submit-btn');
-    
-    if (!code.trim()) {
-        alert('Please write some code before submitting!');
-        return;
-    }
-    
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+function submitCode(code, language) {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
     
     fetch('{% url "compiler:submit_code" %}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
         },
         body: JSON.stringify({
             code: code,
-            question_id: questionId
+            question_id: "{{ question.id }}",
+            language: language
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const modalTitle = document.getElementById('resultModalTitle');
-            const modalBody = document.getElementById('resultModalBody');
-            
             if (data.passed === data.total) {
-                modalTitle.textContent = '🎉 All Tests Passed!';
-                modalTitle.className = 'modal-title text-success';
-                modalBody.innerHTML = `
-                    <div class="text-center">
-                        <h4 class="text-success">Congratulations!</h4>
-                        <p>You passed all ${data.total} test cases!</p>
-                    </div>
-                `;
+                stopTimer();
+                alert(`🎉 Accepted! All ${data.total} test cases passed!`);
             } else {
-                modalTitle.textContent = '❌ Some Tests Failed';
-                modalTitle.className = 'modal-title text-danger';
-                modalBody.innerHTML = `
-                    <div class="text-center">
-                        <h4 class="text-warning">Keep trying!</h4>
-                        <p>You passed ${data.passed} out of ${data.total} test cases.</p>
-                        <p class="text-muted">Review your solution and try again.</p>
-                    </div>
-                `;
+                let message = `${data.passed}/${data.total} test cases passed`;
+                if (data.failed_tests && data.failed_tests.length > 0) {
+                    const firstFailed = data.failed_tests[0];
+                    message += `\n\nFirst failed test case:\nInput: ${firstFailed.input}\nExpected: ${firstFailed.expected}\nActual: ${firstFailed.actual}`;
+                }
+                alert(message);
             }
-            
-            const modal = new bootstrap.Modal(document.getElementById('resultModal'));
-            modal.show();
         } else {
-            alert('Error submitting code: ' + data.error);
+            alert(`❌ Error: ${data.error}`);
         }
     })
-    .catch(error => {
-        alert('Error: ' + error.message);
-    })
     .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit';
     });
-});
+}
+
+resetTimer();
 </script>
 {% endblock %}

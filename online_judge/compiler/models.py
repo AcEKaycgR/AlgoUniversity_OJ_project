@@ -15,7 +15,7 @@ class Question(models.Model):
     constraints = models.TextField(blank=True)
     follow_up = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+    solution = models.TextField(blank=True, help_text="Editorial solution explanation")
     # Add starter code templates
     python_starter = models.TextField(default="class Solution:\n    def solve(self):\n        pass")
     java_starter = models.TextField(blank=True)

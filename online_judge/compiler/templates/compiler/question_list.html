@@ -1,35 +1,232 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Coding Questions</h2>
-    <a href="{% url 'compiler:home' %}" class="btn btn-secondary">← Back to Home</a>
-</div>
+{% block body_class %}page-list{% endblock %}
 
-<div class="row">
-    {% for question in questions %}
-    <div class="col-md-6 mb-3">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">{{ question.title }}</h5>
-                <span class="badge 
-                    {% if question.difficulty == 'Easy' %}bg-success
-                    {% elif question.difficulty == 'Medium' %}bg-warning
-                    {% else %}bg-danger{% endif %}">
-                    {{ question.difficulty }}
-                </span>
-                <p class="card-text mt-2">{{ question.description|truncatewords:20 }}</p>
-                <a href="{% url 'compiler:question_detail' question.id %}" class="btn btn-primary">Solve Problem</a>
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header Section with Black Block -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="content-block p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold mb-2 text-white">Practice Problems</h2>
+                        <p class="text-white mb-0 opacity-85">Sharpen your coding skills with curated challenges</p>
+                    </div>
+                    
+                    <!-- Problem Navigation -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" 
+                                id="problemDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-list me-2"></i>Jump to Problem
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow content-block" style="max-height: 400px; overflow-y: auto; min-width: 300px;">
+                            {% for question in questions %}
+                            <a class="dropdown-item d-flex justify-content-between align-items-center py-2 text-white" 
+                               href="{% url 'compiler:question_detail' question.id %}">
+                                <div>
+                                    <div class="fw-medium">{{ question.id }}. {{ question.title }}</div>
+                                    <small class="text-white-50">{{ question.description|truncatewords:8 }}</small>
+                                </div>
+                                <span class="badge badge-{{ question.difficulty|lower }} ms-2">
+                                    {{ question.difficulty }}
+                                </span>
+                            </a>
+                            {% empty %}
+                            <div class="dropdown-item text-white-50">No problems available</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    {% empty %}
-    <div class="col-12">
-        <div class="text-center">
-            <h4>No questions available yet!</h4>
-            <p>Questions will be added soon.</p>
+
+    <!-- Filter and Search Section with Black Blocks -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="content-block p-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0 text-white">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="problemSearch" class="form-control border-0 bg-transparent text-white" 
+                           placeholder="Search problems by title or keyword...">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="content-block p-3">
+                <select id="difficultyFilter" class="form-select border-0 bg-transparent text-white">
+                    <option value="">All Difficulties</option>
+                    <option value="easy">🟢 Easy</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="hard">🔴 Hard</option>
+                </select>
+            </div>
         </div>
     </div>
-    {% endfor %}
+
+    <!-- Problems Table with Black Block -->
+    <div class="row">
+        <div class="col-12">
+            <div class="content-block">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead style="background: rgba(255, 255, 255, 0.1);">
+                            <tr>
+                                <th width="8%" class="border-0 text-center fw-bold text-white">Status</th>
+                                <th width="52%" class="border-0 fw-bold text-white">Title</th>
+                                <th width="15%" class="border-0 text-center fw-bold text-white">Difficulty</th>
+                                <th width="15%" class="border-0 text-center fw-bold text-white">Acceptance</th>
+                                <th width="10%" class="border-0 text-center fw-bold text-white">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="problemsTableBody">
+                            {% for question in questions %}
+                            <tr class="problem-row" data-title="{{ question.title|lower }}" 
+                                data-difficulty="{{ question.difficulty|lower }}" style="background: rgba(255, 255, 255, 0.05);">
+                                <td class="text-center align-middle border-0">
+                                    <div class="status-indicator">
+                                        <i class="fas fa-circle text-muted"></i>
+                                    </div>
+                                </td>
+                                <td class="align-middle border-0">
+                                    <div class="problem-title">
+                                        <a href="{% url 'compiler:question_detail' question.id %}" 
+                                           class="text-decoration-none fw-medium text-white">
+                                            {{ question.id }}. {{ question.title }}
+                                        </a>
+                                        <div class="problem-tags mt-1">
+                                            <span class="badge bg-secondary text-light me-1">Array</span>
+                                            <span class="badge bg-secondary text-light me-1">Algorithm</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center align-middle border-0">
+                                    <span class="badge badge-{{ question.difficulty|lower }} px-3 py-2">
+                                        {{ question.difficulty }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle border-0">
+                                    <div class="acceptance-rate">
+                                        <span class="fw-medium text-white">{{ forloop.counter0|add:65 }}%</span>
+                                        <div class="progress mt-1" style="height: 4px; background: rgba(255,255,255,0.2);">
+                                            <div class="progress-bar bg-success" style="width: {{ forloop.counter0|add:65 }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center align-middle border-0">
+                                    <a href="{% url 'compiler:question_detail' question.id %}" 
+                                       class="btn btn-outline-light btn-sm">
+                                        <i class="fas fa-play me-1"></i>Solve
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 border-0">
+                                    <div class="empty-state">
+                                        <i class="fas fa-code fa-3x text-white-50 mb-3"></i>
+                                        <h5 class="text-white">No Problems Available</h5>
+                                        <p class="text-white-50">New coding challenges will be added soon!</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+.content-block {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.content-block:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.problem-row {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.problem-row:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: translateX(5px);
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+.dropdown-menu.content-block {
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+</style>
+
+<script>
+// Same search and filter functionality
+document.getElementById('problemSearch').addEventListener('input', filterProblems);
+document.getElementById('difficultyFilter').addEventListener('change', filterProblems);
+
+function filterProblems() {
+    const searchTerm = document.getElementById('problemSearch').value.toLowerCase();
+    const difficultyFilter = document.getElementById('difficultyFilter').value.toLowerCase();
+    const rows = document.querySelectorAll('.problem-row');
+    
+    rows.forEach(row => {
+        const title = row.getAttribute('data-title');
+        const difficulty = row.getAttribute('data-difficulty');
+        
+        const matchesSearch = title.includes(searchTerm);
+        const matchesDifficulty = !difficultyFilter || difficulty === difficultyFilter;
+        
+        if (matchesSearch && matchesDifficulty) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+document.querySelectorAll('.problem-row').forEach(row => {
+    row.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
+            const link = this.querySelector('a');
+            if (link) {
+                window.location.href = link.href;
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
